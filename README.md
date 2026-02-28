@@ -84,6 +84,21 @@ cd /app/resources/
 
 It should check every 5 minutes for 4 hours, repeatedly checking to see if there are resources available.
 
+If you want a Telegram message after the command eventually succeeds, pass your bot token and chat ID:
+
+```sh
+/app/repeat-command/repeat-command \
+    --wait=300 \
+    --timeout=14400 \
+    --command="terraform apply -auto-approve" \
+    --telegram-bot-token="123456:example-token" \
+    --telegram-chat-id="123456789" \
+    --telegram-message="OCI instance provisioned successfully."
+```
+
+The Telegram notification is only sent after a successful run. If either Telegram flag is missing, the command still
+finishes successfully and the notification is skipped.
+
 If you prefer using the OCI CLI to provision your server, the command would be:
 
 ```sh
@@ -125,6 +140,25 @@ For example, this command retries every 5 minutes. After 4 hours it dies.
 ```
 
 You can also kill it with `Ctrl + c`.
+
+Optional notification flags:
+- `--telegram-bot-token` Telegram bot token for sending a success message
+- `--telegram-chat-id` Telegram chat ID that should receive the message
+- `--telegram-message` custom success message text
+
+How to get Telegram bot token and chat ID:
+1. Open Telegram and message `@BotFather`.
+2. Run `/newbot`, follow the prompts, and copy the token returned by BotFather. This is your
+   `--telegram-bot-token`.
+3. Send at least one message to your new bot from the chat where you want notifications.
+4. Open:
+   `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+5. Find `"chat":{"id":...}` in the JSON response. That value is your `--telegram-chat-id`.
+
+Notes:
+- Personal chat IDs are usually positive numbers.
+- Group/channel chat IDs are often negative (channels are commonly like `-100...`).
+- If `getUpdates` is empty, send a message to the bot and retry.
 
 Here is an example of a command you might want to run:
 

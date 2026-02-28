@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os/exec"
 	"strings"
 	"time"
@@ -13,10 +15,16 @@ func main() {
 	var waitTime int
 	var timeout int
 	var command string
+	var telegramBotToken string
+	var telegramChatID string
+	var telegramMessage string
 
 	flag.IntVar(&waitTime, "wait", 30, "Wait time between retries in seconds")
 	flag.IntVar(&timeout, "timeout", 14400, "Total timeout in seconds")
 	flag.StringVar(&command, "command", "", "CLI command to execute")
+	flag.StringVar(&telegramBotToken, "telegram-bot-token", "", "Telegram bot token used for success notifications")
+	flag.StringVar(&telegramChatID, "telegram-chat-id", "", "Telegram chat ID used for success notifications")
+	flag.StringVar(&telegramMessage, "telegram-message", "Oracle Cloud repeater command executed successfully.", "Telegram message to send after a successful command")
 	flag.Parse()
 
 	if command == "" {
@@ -34,6 +42,18 @@ func main() {
 		err := cmd.Run()
 		if err == nil {
 			fmt.Println("Command executed successfully")
+			if telegramBotToken != "" || telegramChatID != "" {
+				if telegramBotToken == "" || telegramChatID == "" {
+					fmt.Println("Telegram notification skipped: both -telegram-bot-token and -telegram-chat-id are required.")
+				} else {
+					err = sendTelegramMessage(telegramBotToken, telegramChatID, telegramMessage)
+					if err != nil {
+						fmt.Printf("Telegram notification failed: %s\n", err)
+					} else {
+						fmt.Println("Telegram notification sent successfully")
+					}
+				}
+			}
 			return
 		}
 
@@ -55,4 +75,23 @@ func main() {
 
 		time.Sleep(time.Duration(waitTime) * time.Second)
 	}
+}
+
+func sendTelegramMessage(botToken string, chatID string, message string) error {
+	endpoint := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", botToken)
+
+	response, err := http.PostForm(endpoint, url.Values{
+		"chat_id": {chatID},
+		"text":    {message},
+	})
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("telegram API returned %s", response.Status)
+	}
+
+	return nil
 }
