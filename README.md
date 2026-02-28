@@ -49,6 +49,13 @@ time of writing.
 
 ### Start Up Container
 
+Terraform version is configurable via `.env`:
+
+```sh
+cp .env.example .env
+# edit TERRAFORM_VERSION if you want a different release
+```
+
 ```
 make setup
 make shell

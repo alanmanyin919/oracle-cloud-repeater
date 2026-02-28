@@ -31,7 +31,9 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Install OCI CLI
-RUN bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --accept-all-defaults
+RUN curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh -o /tmp/oci-install.sh && \
+    bash /tmp/oci-install.sh --accept-all-defaults && \
+    rm -f /tmp/oci-install.sh
 
 # Set OCI CLI installation directory to PATH
 ENV PATH="$HOME/bin:$PATH"
@@ -67,10 +69,13 @@ RUN go build -o /app/repeat-command/repeat-command /app/repeat-command/main.go
 
 ### INSTALL TERRAFORM ###
 
-RUN wget -q https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip && \
+ARG TERRAFORM_VERSION=1.14.6
+
+RUN wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     apt install -y zip && \
-    unzip terraform_1.5.7_linux_amd64.zip && \
+    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     mv terraform /usr/local/bin/ && \
+    rm -f terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     terraform --version
 
 
