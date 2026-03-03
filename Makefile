@@ -1,4 +1,4 @@
-.PHONY: setup copy-files build run shell clean
+.PHONY: setup copy-files build run shell clean cleanup
 
 # Docker image name
 IMAGE_NAME = oci-repeater
@@ -8,6 +8,7 @@ CONTAINER_NAME = oci-repeater
 PROJECT_DIR := $(shell pwd)
 
 -include .env
+TERRAFORM_VERSION ?= 1.14.6
 export
 
 # Paths
@@ -24,18 +25,18 @@ else
     COPY_CMD = if [ ! -f $(1) ]; then cp $(2) $(1); fi
 endif
 
-setup: copy-files build run
+setup: build
 
 copy-files:
 	$(call COPY_CMD,$(MAIN_TF),$(MAIN_TF_EXAMPLE))
 	$(call COPY_CMD,$(CONFIG),$(CONFIG_EXAMPLE))
 	$(call COPY_CMD,$(ENV_FILE),$(ENV_EXAMPLE))
 
-build:
+build: copy-files
 	docker build --build-arg TERRAFORM_VERSION=$(TERRAFORM_VERSION) -t $(CONTAINER_NAME) .
 
 run:
-	docker run -it -v "$(PROJECT_DIR)/resources:/app/resources" $(CONTAINER_NAME)
+	docker run --rm -it --name "$(CONTAINER_NAME)" -v "$(PROJECT_DIR)/resources:/app/resources" $(CONTAINER_NAME)
 
 shell: run
 
@@ -44,3 +45,5 @@ clean:
 	docker kill $(CONTAINER_NAME) || true
 	docker rm -f $(CONTAINER_NAME) || true
 	docker rmi -f $(IMAGE_NAME) || true
+
+cleanup: clean

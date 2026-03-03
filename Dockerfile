@@ -6,9 +6,9 @@ FROM ubuntu:22.04
 
 # Give user the whole folder with their stuff in it on the container
 COPY ./resources /app/resources
-# The config file is for the Oracle Cloud Interface (OCI) CLI
-RUN mkdir -p /root/.oci
-RUN ln -s /app/resources/config /root/.oci/config
+RUN mkdir -p /app/templates && \
+    cp /app/resources/main.tf.example /app/templates/main.tf.example && \
+    cp /app/resources/config.example /app/templates/config.example
 
 
 
@@ -82,4 +82,8 @@ RUN wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraf
 
 ### SHELL ###
 
+COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/bin/bash"]

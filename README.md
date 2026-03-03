@@ -49,17 +49,22 @@ time of writing.
 
 ### Start Up Container
 
-Terraform version is configurable via `.env`:
+Terraform version is configurable via `.env` if you want to override the default before building:
 
 ```sh
 cp .env.example .env
 # edit TERRAFORM_VERSION if you want a different release
 ```
 
-```
-make setup
+```sh
+make build
 make shell
 ```
+
+`make build` is the one-time image build step. It will copy `.env`, `resources/main.tf`, and `resources/config` from
+their example files if they are missing. After that, use `make shell` whenever you want to start the container again
+without rebuilding it. The container also re-seeds `resources/main.tf` and `resources/config` on startup if either file
+has been removed.
 
 You should now have a shell on the container. Try running:
 
@@ -120,7 +125,7 @@ Good luck, and have fun with the free server.
 
 ### Clean-up
 
-```
+```sh
 make cleanup
 ```
 
