@@ -36,7 +36,7 @@ RUN curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/inst
     rm -f /tmp/oci-install.sh
 
 # Set OCI CLI installation directory to PATH
-ENV PATH="$HOME/bin:$PATH"
+ENV PATH="/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # Test the OCI CLI installation
 RUN  /root/bin/oci --version
@@ -52,9 +52,8 @@ RUN wget https://go.dev/dl/go1.21.1.linux-amd64.tar.gz -O /tmp/go.tar.gz -q && \
     rm /tmp/go.tar.gz
 
 # Set Go environment variables
-ENV PATH="/usr/local/go/bin:$PATH"
 ENV GOPATH="/go"
-ENV PATH="$GOPATH/bin:$PATH"
+ENV PATH="/go/bin:/usr/local/go/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # Create a directory for the Go project
 RUN mkdir -p /app/repeat-command
